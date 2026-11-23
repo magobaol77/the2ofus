@@ -30,7 +30,7 @@ const LD_SPECIAL = {
   recycling: 'paga per piantare alberi in un parco: 1 albero gratis, 2 per 1 moneta, 3 per 3, 4 per 6, 5 per 10',
   arborist: 'prendi a caso una carta Parco di livello 1 non usata e ottieni il suo bonus personale',
   randomPark: 'prendi a caso una carta Parco di livello 1 non usata e ottieni il suo bonus personale',
-  mudroom: 'riprendi un tuo lavoratore già piazzato e ripiazzalo subito su uno spazio libero (o Prendi 2 monete), svolgendo l\'azione',
+  mudroom: 'riprendi un tuo lavoratore già piazzato (da qualsiasi casella, anche Prendi 2 monete) e rimettilo sulla tua plancia: lo ripiazzi con un\'azione successiva',
   compost: 'inaugura subito un parco in cui hai più alberi di ogni altro giocatore (non in parità) e vinci tu la carta',
   attic: 'prendi una carta dal display o dal mazzo; se è giocabile puoi giocarla subito con sconto 11',
   fountain: '3 monete per ogni Giardino adiacente alla stanza appena piazzata',
@@ -160,7 +160,7 @@ function describeCardLogic(kind, name) {
       placeOccupied: 'piazzi un lavoratore su uno spazio occupato, con 2 jolly virtuali', stressSet11: 'quando sali di Stress e superi 11 puoi riportarlo a 11 (riattraversando le barre rosse)',
       roomDouble: "raddoppi l'effetto (immediato e rendita) della Stanza giocata", treesDouble: 'raddoppi gli alberi che pianti',
       medalUp: 'quando piazzi una medaglia (serve comunque un\'azione Hobby o un effetto) puoi metterla una riga più in alto, anche se occupata', incomeGain2: 'quando ottieni +2 o più rendita: +3 PV e 4 monete',
-      gardenConnected: 'quando piazzi un Giardino: 3 monete per ogni Giardino collegato', upgradeJump: 'un Upgrade passa direttamente al livello 3',
+      gardenConnected: 'quando piazzi un Giardino: 2 monete per ogni Giardino collegato', upgradeJump: 'un Upgrade passa direttamente al livello 3',
       profHalf: 'paghi metà prezzo (per eccesso) una Professione', parkWonAgain: 'quando vinci una carta Parco ottieni di nuovo il suo bonus',
       cultureCoins: 'quando avanzi sulla Cultura: monete pari alla tua Cultura', benefitBonus: 'quando ottieni un Beneficio: 6 monete e il gettone già girato',
     };

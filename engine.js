@@ -491,7 +491,7 @@ async function placeTile(p, tile, opts = {}) {
     const times = special ? 1 : mult;
     for (let i = 0; i < times; i++) { log('ottiene il bonus della casa: ' + (b.family ? 'Allargamento famiglia' : describeOps(b)), p.id); await applyOps(p, b, { src: 'casa' }); }
   }
-  if (tile.kind === 'garden') await useKid(p, 'gardenConnected', 'Usa ' + p.kids.inst + ' (3 monete per Giardino collegato)?', async () => { p.coins += 3 * connectedGardens(p, cells[0]); });
+  if (tile.kind === 'garden') await useKid(p, 'gardenConnected', 'Usa ' + p.kids.inst + ' (2 monete per Giardino collegato)?', async () => { p.coins += 2 * connectedGardens(p, cells[0]); });
   await checkMilestones(p);
   return cells;
 }
@@ -862,7 +862,7 @@ async function playerTurn(p) {
   const v = await choose(p.id, 'Il tuo turno', opts, { forceAsk: true, turnMenu: true });
   stCount('act', v.t === 'place' ? v.a : v.t, p.id);
   if (v.t === 'pass') { G.passed.push(p.id); log('passa', p.id); return; }
-  if (v.t === 'coins') { p.workersAvail[v.w] = false; p.coins += 2; log('prende 2 monete', p.id); return; }
+  if (v.t === 'coins') { p.workersAvail[v.w] = false; (G.coinsPlaced = G.coinsPlaced || []).push({ pid: p.id, w: v.w }); p.coins += 2; log('prende 2 monete', p.id); return; }
   if (v.t === 'hobby') {
     p.coins -= hc; p.hobby++; log('avanza sul tracciato Hobby pagando ' + hc, p.id);
     await hobbyMenu(p); return;
@@ -886,13 +886,7 @@ async function incomePhase() {
   log('— Round ' + G.round + ': fase di rendita —');
   for (const pid of G.turnOrder) {
     const p = P(pid);
-    p.coins += p.income; log('rendita: ' + p.income + ' monete', pid);
-    const [d, s] = CARD_INCOME[p.cardInc];
-    await opDraw(p, d, 0);
-    for (const c of p.rooms) {
-      const L = logicOf(c.name);
-      if (L.rendita) { log('rendita di ' + c.name, pid); await applyOps(p, L.rendita, { card: c }); }
-    }
+    const s = await incomeSteps(p);
     if (s) await discardCards(p, Math.min(s, p.hand.length), 'Rendita carte: scarta ' + s + ' carte');
     const lim = handLimit(p);
     if (p.hand.length > lim) await discardCards(p, p.hand.length - lim, 'Limite della mano ' + lim + ': scarta ' + (p.hand.length - lim));
@@ -900,6 +894,27 @@ async function incomePhase() {
     refillDisplay(); // il display si riempie alla fine del turno di ogni giocatore, anche in rendita
   }
   G.phase = 'actions'; G.passed = []; G.turnPos = 0;
+}
+// passi della rendita (monete, carte, Stanze) in ordine libero: si chiede solo se l'ordine può contare
+function roomIncomeText(c) { const e = (cardData(c).effetti || []).find(x => x.tipo === 'rendita'); return e ? e.testo : ''; }
+function incomeOrderMatters(rooms) { return rooms.some(c => /"(income|stress|culture|repeat)"/.test(JSON.stringify(logicOf(c.name).rendita))); }
+async function incomeSteps(p) {
+  const rooms = p.rooms.filter(c => logicOf(c.name).rendita);
+  const steps = [{ k: 'coins' }, { k: 'draw' }].concat(rooms.map(c => ({ k: 'room', c })));
+  const free = incomeOrderMatters(rooms);
+  let discardN = 0;
+  while (steps.length) {
+    let i = 0;
+    if (free && steps.length > 1) {
+      const lab = st => st.k === 'coins' ? 'Incassa la rendita: ' + p.income + ' monete' : st.k === 'draw' ? 'Pesca ' + CARD_INCOME[p.cardInc][0] + ' carte (rendita carte, poi ne scarti ' + CARD_INCOME[p.cardInc][1] + ')' : 'Rendita di ' + st.c.name + ': ' + roomIncomeText(st.c);
+      i = await choose(p.id, 'Fase di rendita: cosa risolvi adesso?', steps.map((st, j) => ({ label: lab(st), value: j })), { forceAsk: true });
+    }
+    const st = steps.splice(i, 1)[0];
+    if (st.k === 'coins') { p.coins += p.income; log('rendita: ' + p.income + ' monete', p.id); }
+    else if (st.k === 'draw') { const [d, s] = CARD_INCOME[p.cardInc]; discardN = s; await opDraw(p, d, 0); }
+    else { log('rendita di ' + st.c.name, p.id); await applyOps(p, logicOf(st.c.name).rendita, { card: st.c }); }
+  }
+  return discardN;
 }
 function nextActive() {
   for (let k = 0; k < G.turnOrder.length; k++) { const pid = G.turnOrder[(G.turnPos + k) % G.turnOrder.length]; if (!G.passed.includes(pid)) return { pid, pos: (G.turnPos + k) % G.turnOrder.length }; }
@@ -926,7 +941,7 @@ async function endRound() {
   const prev = G.turnOrder.slice();
   G.turnOrder = prev.slice().sort((a, b) => (P(a).hobby - P(b).hobby) || (prev.indexOf(b) - prev.indexOf(a)));
   G.players.forEach(p => { p.hobby = HOBBY_START; p.workersAvail = [true, true]; });
-  G.spaceDefs.forEach(s => G.spaces[s.id] = null); G.spaceExtra = [];
+  G.spaceDefs.forEach(s => G.spaces[s.id] = null); G.spaceExtra = []; G.coinsPlaced = [];
   ST().track.push(G.players.map(p => liveScore(p)));
   G.round++; G.phase = 'income';
 }
@@ -978,7 +993,7 @@ function scorePlayer(p) {
 }
 function kidEndScore(p) {
   const k = KIDE[p.kids.end]; if (!k) return 0;
-  if (k.nome === 'The Animal Lover') return (p.famSlots.dog ? 5 : 0) + (p.famSlots.cat ? 5 : 0);
+  if (k.nome === 'The Animal Lover') return (p.famSlots.dog ? 6 : 0) + (p.famSlots.cat ? 6 : 0);
   const it = iconsT(p); let n = 0;
   switch (k.nome) {
     case 'The Top Student': n = p.workers[0].length + p.workers[1].length; break;
@@ -986,7 +1001,7 @@ function kidEndScore(p) {
     case 'The Builder': n = p.rooms.length; break;
     case 'The Cozy One': n = benefitIcons(p, 'Serenità'); break;
     case 'The Bookworm': n = p.culture; break;
-    case 'The Dreamer': n = p.medalsPlaced.length; break;
+    case 'The Dreamer': n = p.medalsPlaced.length + p.medalsLoose.length; break; // tutte le medaglie rimosse dalla plancia
     case 'The Friend Maker': n = benefitIcons(p, 'Amici'); break;
     case 'Jack of all trades': n = Math.max(distinctW(p, 0), distinctW(p, 1)); break;
     case 'The Specialist': n = Math.max(...[0, 1].map(w => Math.max(...Object.values(iconsW(p, w))))); break;
@@ -1066,22 +1081,22 @@ const SPECIALS = {
     if (seen.size) { p.coins += 3 * seen.size; log('Fountain: ' + 3 * seen.size + ' monete', p.id); }
   },
   async mudroom(p) {
-    // riprendi un tuo lavoratore già piazzato e ripiazzalo subito su uno spazio libero, svolgendo l'azione
-    const opts = Object.entries(G.spaces).filter(([k, v]) => v && v.pid === p.id).map(([k, v]) => ({ label: 'Riprendi il lavoratore ' + (v.w + 1) + ' da ' + G.spaceDefs.find(s => s.id === k).actions.map(a => ACTIONS[a].name).join(' / '), value: k }));
+    // riprendi un tuo lavoratore già piazzato (da qualsiasi casella, anche "Prendi 2 monete") e rimettilo sulla tua plancia:
+    // lo potrai ripiazzare con un'azione successiva di questo round
+    const nameOf = id => G.spaceDefs.find(s => s.id === id).actions.map(a => ACTIONS[a].name).join(' / ');
+    const opts = [];
+    for (const [k, v] of Object.entries(G.spaces)) if (v && v.pid === p.id) opts.push({ label: 'Lavoratore ' + (v.w + 1) + ' da ' + nameOf(k), value: { kind: 'space', k } });
+    (G.spaceExtra || []).forEach((x, i) => { if (x.pid === p.id) opts.push({ label: 'Lavoratore ' + (x.w + 1) + ' da ' + nameOf(x.s), value: { kind: 'extra', i } }); });
+    (G.coinsPlaced || []).forEach((x, i) => { if (x.pid === p.id) opts.push({ label: 'Lavoratore ' + (x.w + 1) + ' da Prendi 2 monete', value: { kind: 'coins', i } }); });
     if (!opts.length) { log('Mudroom: nessun lavoratore da riprendere', p.id); return; }
-    const k = await choose(p.id, 'Mudroom: quale lavoratore riprendi?', opts.concat([{ label: 'Nessuno', value: null }]), { forceAsk: true });
-    if (!k) return;
-    const w = G.spaces[k].w; G.spaces[k] = null;
-    const sp = [];
-    for (const s of G.spaceDefs) if (!G.spaces[s.id] && s.id !== k) for (const a of s.actions) sp.push({ label: ACTIONS[a].name + ' (forza ' + (a === 'DayOut' ? distinctW(p, w) : iconsW(p, w)[a]) + ')', value: { s: s.id, a } });
-    sp.push({ label: 'Prendi 2 monete', value: { s: 'coins' } });
-    const v = await choose(p.id, 'Mudroom: dove ripiazzi il lavoratore ' + (w + 1) + '?', sp, { forceAsk: true });
-    if (v.s === 'coins') { p.coins += 2; log('Mudroom: ripiazza il lavoratore ' + (w + 1) + ' e prende 2 monete', p.id); return; }
-    G.spaces[v.s] = { pid: p.id, w };
-    const base = v.a === 'DayOut' ? distinctW(p, w) : iconsW(p, w)[v.a];
-    const j = await useJollyForStrength(p, base);
-    log('Mudroom: ripiazza il lavoratore ' + (w + 1) + ' su ' + ACTIONS[v.a].name + ' (forza ' + (base + j) + ')', p.id);
-    await performAction(p, v.a, w, base + j);
+    const v = await choose(p.id, 'Mudroom: quale lavoratore riprendi?', opts.concat([{ label: 'Nessuno', value: null }]), { forceAsk: true });
+    if (!v) return;
+    let w;
+    if (v.kind === 'space') { w = G.spaces[v.k].w; G.spaces[v.k] = null; }
+    else if (v.kind === 'extra') { w = G.spaceExtra[v.i].w; G.spaceExtra.splice(v.i, 1); }
+    else { w = G.coinsPlaced[v.i].w; G.coinsPlaced.splice(v.i, 1); }
+    p.workersAvail[w] = true;
+    log('Mudroom: riprende il lavoratore ' + (w + 1) + ', lo potrà ripiazzare in un turno successivo', p.id);
   },
   async attic(p) {
     const c = await takeFromDisplayOrDeck(p, true, 'Attic: prendi una carta');

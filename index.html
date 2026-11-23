@@ -4,24 +4,38 @@
 <meta charset="utf-8">
 <title>the 2 of us – Playtest</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css?v=20261121a">
+<link rel="stylesheet" href="style.css?v=20261123a">
 </head>
 <body>
 <header id="top">
   <div class="brand"><span class="brand-the">the</span> 2 of us</div>
   <div class="info" id="hinfo"></div>
   <nav>
+    <button id="bMenu" title="Torna alla schermata iniziale (la partita resta salvata)">☰ Menu</button>
     <button id="bUndo" title="Annulla l'ultimo passo">↶ Annulla</button>
     <button id="bSpeed" title="Quanto aspettano gli automi prima di ogni mossa, per poterle seguire (clic per cambiare)">Velocità automi: Normale</button>
     <button id="bLog">Diario</button>
     <button id="bFix">Correggi</button>
     <button id="bSave">Esporta</button>
-    <button id="bLoad">Importa</button>
-    <button id="bNew">Nuova partita</button>
-    <button onclick="location.href='verifica.html'" title="Controlla tutte le carte e come le applica il motore">Carte</button>
-    <button onclick="location.href='simulatore.html'" title="Partite tra automi, statistiche, allenamento">Simulatore</button>
   </nav>
 </header>
+
+
+<section id="home" class="home" aria-label="Schermata iniziale">
+  <div class="home-card">
+    <h1 class="home-title"><span class="brand-the">the</span> 2 of us</h1>
+    <p class="home-sub">Playtest · 2–4 giocatori</p>
+    <div class="home-menu">
+      <button class="hbtn primary" id="hContinue" hidden>Continua partita</button>
+      <button class="hbtn" id="hNew">Nuova partita</button>
+      <button class="hbtn" id="hLoad">Importa partita</button>
+      <button class="hbtn" id="hCards" title="Controlla tutte le carte e come le applica il motore">Carte</button>
+      <button class="hbtn" id="hSim" title="Partite tra automi, statistiche, allenamento">Simulatore</button>
+      <button class="hbtn" id="hScores">Highscore</button>
+    </div>
+    <p class="small home-foot" id="hFoot"></p>
+  </div>
+</section>
 
 <main id="table">
   <div id="boardCol"></div>
@@ -44,15 +58,16 @@
 </div></div>
 <div class="modal" id="mFix"><div class="box" id="fixBox"></div></div>
 <div class="modal" id="mScore"><div class="box score" id="scoreBox"></div></div>
+<div class="modal" id="mHs"><div class="box hs" id="hsBox"></div></div>
 <input type="file" id="fileIn" accept=".json" style="display:none">
 
-<script src="board-data.js?v=20261120d"></script>
-<script src="effects-data.js?v=20261120d"></script>
-<script src="card-logic.js?v=20261120d"></script>
-<script src="card-images.js?v=20261120d"></script>
-<script src="engine.js?v=20261120d"></script>
-<script src="bot-weights.js?v=20261120d"></script>
-<script src="bot.js?v=20261120d"></script>
-<script src="ui.js?v=20261120d"></script>
+<script src="board-data.js?v=20261123a"></script>
+<script src="effects-data.js?v=20261123a"></script>
+<script src="card-logic.js?v=20261123a"></script>
+<script src="card-images.js?v=20261123a"></script>
+<script src="engine.js?v=20261123b"></script>
+<script src="bot-weights.js?v=20261123a"></script>
+<script src="bot.js?v=20261123a"></script>
+<script src="ui.js?v=20261123a"></script>
 </body>
 </html>

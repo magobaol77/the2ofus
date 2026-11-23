@@ -5,6 +5,13 @@ index.html, simulatore.html, verifica.html, logic-describe.js, style.css, ui.js,
 card-logic.js, board-data.js, effects-data.js, card-images.js
 e le cartelle icons/ e cards/.
 
+SCHERMATA INIZIALE
+- All'apertura compare il menu: Continua partita (se ce n'è una salvata), Nuova partita, Importa partita,
+  Carte, Simulatore, Highscore. Durante la partita il pulsante "Menu" in alto ci riporta (la partita resta salvata).
+- Highscore: a fine partita ogni giocatore umano viene registrato con punti, famiglia, plancia, Figli, animali,
+  round di chiusura e punti per categoria. Filtro per numero di giocatori, esportazione CSV, "Svuota" per azzerare.
+  I dati restano nel browser del computer su cui giochi.
+
 NUOVA PARTITA
 - Per ogni posto scegli Umano o Automa. Gli umani giocano a turno sullo stesso schermo.
 - Il pulsante "Automi: ..." in alto cambia la velocità delle mosse degli automi (Lenta, Normale, Veloce, Istantanea).
@@ -23,11 +30,11 @@ COME SI GIOCA
 
 STRUMENTI
 - Annulla torna indietro di un passo. Correggi modifica a mano risorse e carte del giocatore mostrato.
-- Diario apre lo storico. La partita si salva da sola nel browser; Esporta/Importa salvano su file.
+- Diario apre lo storico. La partita si salva da sola nel browser; Esporta la salva su file, Importa (nel menu) la riapre.
 
 Regole implementate e assunzioni: Regole_webapp_e_assunzioni.md
 
-VERIFICA CARTE (pulsante "Carte" in alto, oppure verifica.html)
+VERIFICA CARTE (voce "Carte" del menu, oppure verifica.html)
 - Tutte le carte (Professioni, Stanze, Sogni, Parchi, Famiglie, Figli) con immagine, testo trascritto e
   "cosa fa il motore" in italiano. Segna Giusto/Sbagliato e scrivi cosa non va; si salva da solo nel browser.
 - "Scarica segnalazioni" crea un file .md con le carte sbagliate da mandarmi.

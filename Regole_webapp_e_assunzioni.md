@@ -84,7 +84,9 @@ Questo documento raccoglie le regole implementate nella webapp, incluse le rispo
   | PV | 0/2/7 | — |
 
   I PV sotto le tessere li ho letti dalla plancia (3, 4, 2, 7).
-- 🟡 **Headteacher, CEO, Humanitarian Worker, Conservatory**: prendi un disco medaglia del livello indicato, o di un livello inferiore, senza piazzarlo su un Sogno. Ottieni il suo bonus e i suoi PV.
+- **Headteacher, CEO, Humanitarian Worker, Conservatory**: rimuovi dalla plancia un disco medaglia del livello indicato (solo quel livello), senza piazzarlo su un Sogno. Ottieni il suo bonus e i suoi PV; non conta per le milestone, ma conta per Photo Wall, Listening Lounge e The Dreamer.
+- **Mudroom**: riprendi un tuo lavoratore già piazzato, da qualsiasi casella (anche Prendi 2 monete), e rimettilo sulla tua plancia; lo ripiazzi con un'azione successiva.
+- **The Sweet One**: riportando lo Stress a 11 si riattraversano le barre rosse e si riprende la rendita persa.
 
 ## Cosa non è automatico
 - Il pulsante **Correggi** permette di modificare a mano qualsiasi risorsa, i Benefici, gli Upgrade e le carte in mano. Serve per risolvere a mano un effetto non previsto o un errore.
@@ -134,3 +136,11 @@ Costi, PV, icone, prerequisiti, dimensioni e Benefici di Professioni, Stanze e F
 - Catene modificate: Wedding Planner (Amici: 1 jolly + 1 moneta), Hairdresser (Amici: pesca 2 + 1 moneta), Conservatory (immediato: medaglia argento; catena Amici: +1 Cultura e 1 albero).
 - Basement: lo scambio in rendita si fa una volta sola (tolto il simbolo catena).
 - Famiglie: The Relaxed 22 monete, The Savers 17 monete.
+
+## Aggiornamento 23/11: Figli, Famiglie e schermata iniziale
+Dati e immagini dei Figli e di The Brighton presi dai fogli grafici del 23/11.
+- Figli istantanei: The Painter 2 cariche (il raddoppio vale solo quando giochi la Stanza); The Green Thumb 3 PV; The Music Lover 2 monete per ogni Giardino collegato, compreso il nuovo; The Dancer 2 PV.
+- Figli di fine partita: Explorer, Cozy One e Friend Maker 1:2 · 2:5 · 3:8 · 4:12 · 5+:16; Jack of all trades 4:1 · 5:3 · 6:5 · 7:7 · 8:10 · 9:14; The Specialist 3:2 · 4:5 · 5:8 · 6:12 · 7+:16; The Bookworm 8:2 · 9:4 · 10:6 · 11:8 · 12:10 · 13:12; The Animal Lover 6 PV per il Cane e 6 per il Gatto.
+- Famiglie: The Brighton 22 monete.
+- Nuova schermata iniziale (Continua, Nuova partita, Importa, Carte, Simulatore, Highscore) e pulsante Menu in partita. Highscore salvato nel browser (chiave `the2ofus.highscores.v1`), solo giocatori umani.
+- Fase di rendita in ordine libero: monete, carte e ogni Stanza con rendita si risolvono nell'ordine scelto dal giocatore. L'app lo chiede solo se almeno una Stanza ha una rendita in cui l'ordine conta (scambi a pagamento, rendita, Stress, Cultura); altrimenti risolve in automatico. Gli scarti della rendita carte e il limite della mano restano alla fine.

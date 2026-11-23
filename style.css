@@ -534,3 +534,37 @@ body.noworker .actwrap:hover .levels,.actwrap.pin .levels{display:block}
 .hcost .arr{font-size:11px;color:var(--muted);font-weight:800}
 .hcost.pay{background:var(--sun);border-radius:8px;padding:2px 3px;box-shadow:0 0 0 2px var(--hot)}
 .hcost.pay .arr{color:#3B2A00}
+
+/* schermata iniziale */
+.home{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(circle at 30% 20%,#3C6A4E 0,#2B4A37 55%,#203829 100%);overflow:auto}
+.home[hidden]{display:none}
+body.home-on{overflow:hidden}
+.home-card{background:#fff;border-radius:22px;padding:34px 38px 26px;width:min(420px,100%);text-align:center;box-shadow:0 18px 50px #0006}
+.home-title{font:700 54px/1 var(--display);margin:0;color:var(--head);letter-spacing:.5px}
+.home-title .brand-the{font-size:.42em;vertical-align:.95em;margin-right:4px}
+.home-sub{margin:8px 0 22px;color:var(--muted);font-weight:700}
+.home-menu{display:flex;flex-direction:column;gap:10px}
+.hbtn{display:block;width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--soft);font:600 17px var(--display);color:var(--ink);cursor:pointer}
+.hbtn:hover{background:#E8EFE4;border-color:#B9C6B4}
+.hbtn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.hbtn.primary:hover{background:#287A39}
+.hbtn:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.hbtn small{display:block;font:600 12px var(--font);opacity:.85;margin-top:1px}
+.home-foot{margin:16px 0 0}
+
+/* highscore */
+.modal .box.hs{width:min(1100px,96vw);max-width:1100px}
+.hs-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.hs-head h3{margin:0;font:600 20px var(--display);flex:1}
+.hs-head select{font:inherit;padding:5px 7px}
+.hstab{border-collapse:collapse;width:100%;font-size:13px}
+.hstab th,.hstab td{padding:5px 7px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.hstab th{position:sticky;top:-18px;background:#fff;font-size:12px;color:var(--muted)}
+.hstab td.n,.hstab th.n{text-align:right}
+.hstab tr.first td{background:var(--sunsoft)}
+.hstab td.tot{font:700 16px var(--display)}
+.hstab .sub{font-size:11px;color:var(--muted)}
+.hs-wrap{overflow:auto;max-height:62vh}
+.hs-empty{padding:26px;text-align:center;color:var(--muted)}
+.btn.warn{background:#FCE9E7;border-color:var(--red);color:var(--red)}

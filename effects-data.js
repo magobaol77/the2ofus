@@ -1,6 +1,6 @@
 // Happy Family - effetti trascritti dalle immagini delle carte (incerto=true: da verificare)
 const HF_DATA = {
-"versione":"trascrizione 2026-11-21 (allineata a Excel e grafica)",
+"versione":"trascrizione 2026-11-23 (Figli e Famiglie dalla grafica del 23/11)",
 "professioni":[
 {"nome":"Florist","costo":6,"icone":["Natura","Affari"],"prereq":null,"pv":0,"beneficio":null,"effetti":[{"tipo":"immediato","testo":"2x Giardino","incerto":false}]},
 {"nome":"Mason","costo":5,"icone":["Manualità"],"prereq":null,"pv":1,"beneficio":null,"effetti":[{"tipo":"immediato","testo":"tessera stanza dim2","incerto":false}]},
@@ -149,7 +149,7 @@ const HF_DATA = {
 {"nome":"Practice Room","dim":3,"costo":19,"icone":["Creatività"],"prereq":null,"pv":2,"benefici":["Amici"],"effetti":[{"tipo":"continuo","testo":"per ogni icona Creatività sulle carte che giochi -> prendi 1 carta dal display (o pesca) + 2 monete","incerto":false},{"tipo":"catena","testo":"-1 stress + 2 monete","beneficio":"Amici","incerto":false}],"forma":"L3"},
 {"nome":"Dance Room","dim":4,"costo":17,"icone":[],"prereq":null,"pv":2,"benefici":["Amici"],"effetti":[{"tipo":"rendita","testo":"se hai 3+ icone Creatività -> +1 Cultura","incerto":false},{"tipo":"catena","testo":"1 jolly","beneficio":"Amici","incerto":false}],"forma":"T4"},
 {"nome":"Apiary","dim":2,"costo":11,"icone":["Manualità"],"prereq":null,"pv":1,"benefici":[],"effetti":[{"tipo":"continuo","testo":"quando pianti 3 o piu' alberi in una volta -> 1 jolly + 1 moneta (o \"oppure\"?)","incerto":true}],"forma":"I2"},
-{"nome":"Mudroom","dim":1,"costo":9,"icone":[],"prereq":null,"pv":1,"benefici":[],"effetti":[{"tipo":"immediato","testo":"riprendi un tuo lavoratore gia' piazzato e ripiazzalo subito su uno spazio libero a scelta","incerto":false}],"forma":"1"},
+{"nome":"Mudroom","dim":1,"costo":9,"icone":[],"prereq":null,"pv":1,"benefici":[],"effetti":[{"tipo":"immediato","testo":"riprendi un tuo lavoratore gia' piazzato (da qualsiasi casella) e rimettilo sulla tua plancia; lo ripiazzi con un'azione successiva","incerto":false}],"forma":"1"},
 {"nome":"Living Room","dim":4,"costo":17,"icone":["Empatia"],"prereq":null,"pv":2,"benefici":[],"effetti":[{"tipo":"rendita","testo":"1 jolly ogni 2 icone Empatia","incerto":false}],"forma":"T4"},
 {"nome":"Herb Garden","dim":5,"costo":18,"icone":[],"prereq":null,"pv":3,"benefici":[],"effetti":[{"tipo":"immediato","testo":"raddoppia i bonus che copri (esclusi Allargamento famiglia e Upgrade)","incerto":false}],"forma":"X5"},
 {"nome":"Gym","dim":2,"costo":23,"icone":["Disciplina"],"prereq":null,"pv":3,"benefici":[],"effetti":[{"tipo":"continuo","testo":"per ogni icona Disciplina sulle carte che giochi -> +1 Cultura + 2 monete","incerto":false}],"forma":"I2"},
@@ -278,35 +278,35 @@ const HF_DATA = {
 {"nome":"The Adaptives","icona":null,"monete":24,"iniziale":"prendi 1 carta dal display (o pesca)","continuo":"ignori i prerequisiti di Professioni e Stanze","incerto":false},
 {"nome":"The Heirs","icona":null,"monete":37,"iniziale":null,"continuo":null,"incerto":false},
 {"nome":"The Savers","icona":null,"monete":17,"iniziale":"+1 rendita denaro","continuo":"ogni volta che ottieni +1 rendita denaro -> 1 moneta","incerto":true},
-{"nome":"The Brighton","icona":null,"monete":16,"iniziale":"1 Upgrade","continuo":"quando sviluppi un Upgrade -> -1 stress","incerto":false}
+{"nome":"The Brighton","icona":null,"monete":22,"iniziale":"1 Upgrade","continuo":"quando sviluppi un Upgrade -> -1 stress","incerto":false}
 ],
 "figliFinePartita":[
 {"nome":"The Top Student","conteggio":"Professioni","tabella":{"7":2,"8":4,"9":6,"10":9,"11":12,"12+":15}},
-{"nome":"The Explorer","conteggio":"icone Viaggi","tabella":{"1":2,"2":5,"3":8,"4":11,"5+":15}},
+{"nome":"The Explorer","conteggio":"icone Viaggi","tabella":{"1":2,"2":5,"3":8,"4":12,"5+":16}},
 {"nome":"The Builder","conteggio":"Stanze","tabella":{"4":2,"5":4,"6":6,"7":9,"8":12,"9+":15}},
-{"nome":"The Animal Lover","conteggio":"animali","testo":"cane = 5 PV, gatto = 5 PV"},
-{"nome":"The Cozy One","conteggio":"icone Serenità","tabella":{"1":2,"2":5,"3":8,"4":11,"5+":15}},
-{"nome":"The Bookworm","conteggio":"Cultura","tabella":{"8":2,"9":4,"10":6,"11":9,"12":12,"13":15}},
-{"nome":"The Dreamer","conteggio":"medaglie piazzate sui Sogni","tabella":{"1":1,"2":3,"3":6,"4":9,"5":12,"6+":16}},
-{"nome":"The Friend Maker","conteggio":"icone Amici","tabella":{"1":2,"2":5,"3":8,"4":11,"5+":15}},
-{"nome":"Jack of all trades","conteggio":"icone diverse su un solo genitore","tabella":{"2":1,"3":2,"4":3,"5":5,"6":8,"7":11,"8":14,"9":18}},
-{"nome":"The Specialist","conteggio":"max icone di un solo tipo su un genitore","tabella":{"2":1,"3":2,"4":4,"5":7,"6":10,"7":14,"8+":18}},
+{"nome":"The Animal Lover","conteggio":"animali","testo":"cane = 6 PV, gatto = 6 PV"},
+{"nome":"The Cozy One","conteggio":"icone Serenità","tabella":{"1":2,"2":5,"3":8,"4":12,"5+":16}},
+{"nome":"The Bookworm","conteggio":"Cultura","tabella":{"8":2,"9":4,"10":6,"11":8,"12":10,"13":12}},
+{"nome":"The Dreamer","conteggio":"medaglie rimosse dalla plancia (sui Sogni o con un effetto)","tabella":{"1":1,"2":3,"3":6,"4":9,"5":12,"6+":16}},
+{"nome":"The Friend Maker","conteggio":"icone Amici","tabella":{"1":2,"2":5,"3":8,"4":12,"5+":16}},
+{"nome":"Jack of all trades","conteggio":"icone diverse su un solo genitore","tabella":{"4":1,"5":3,"6":5,"7":7,"8":10,"9":14}},
+{"nome":"The Specialist","conteggio":"max icone di un solo tipo su un genitore","tabella":{"3":2,"4":5,"5":8,"6":12,"7+":16}},
 {"nome":"The Gifted","conteggio":"carte con 2+ icone abilita'","tabella":{"4":2,"5":4,"6":6,"7":9,"8":12,"9":15}},
 {"nome":"The Ambitious","conteggio":"carte con costo 17+","tabella":{"2":2,"3":5,"4":8,"5":12,"6+":16}}
 ],
 "figliIstantanei":[
 {"nome":"The Helper","pv":3,"cariche":2,"potere":"quando piazzi un genitore: puoi metterlo su uno spazio occupato e ottieni 2 jolly virtuali per quell'azione"},
 {"nome":"The Sweet One","pv":2,"cariche":1,"potere":"quando sali di Stress (oltre 11) puoi riportarlo a 11"},
-{"nome":"The Painter","pv":4,"cariche":3,"potere":"quando giochi una Stanza: puoi raddoppiarne l'effetto immediato o di rendita"},
-{"nome":"The Green Thumb","pv":4,"cariche":2,"potere":"quando pianti 1+ alberi: raddoppia il numero di alberi piazzati"},
+{"nome":"The Painter","pv":4,"cariche":2,"potere":"quando giochi una Stanza: puoi raddoppiarne l'effetto immediato o di rendita (solo in quel momento)"},
+{"nome":"The Green Thumb","pv":3,"cariche":2,"potere":"quando pianti 1+ alberi: raddoppia il numero di alberi piazzati"},
 {"nome":"The Visionary","pv":2,"cariche":2,"potere":"quando piazzi una medaglia (con un'azione Hobby o un effetto): puoi metterla una riga piu' in alto e anche su uno spazio gia' occupato. Non da' l'azione, la potenzia"},
 {"nome":"The Geek","pv":3,"cariche":2,"potere":"quando ottieni +2 o piu' di rendita denaro in una volta: 3 PV + 4 monete"},
-{"nome":"The Music Lover","pv":3,"cariche":2,"potere":"quando ottieni un Giardino: 3 monete per ogni Giardino collegato nella casa"},
+{"nome":"The Music Lover","pv":3,"cariche":2,"potere":"quando ottieni un Giardino: 2 monete per ogni Giardino collegato nella casa (compreso il nuovo)"},
 {"nome":"The Curious","pv":5,"cariche":2,"potere":"quando sviluppi un Upgrade: puoi passare direttamente dal livello 1 al livello 3"},
 {"nome":"The Quick Learner","pv":2,"cariche":2,"potere":"quando giochi una Professione: puoi pagare meta' del costo, arrotondato per eccesso"},
 {"nome":"The Athlete","pv":4,"cariche":2,"potere":"quando vinci una carta Parco: ottieni di nuovo il suo bonus"},
 {"nome":"The Singer","pv":2,"cariche":2,"potere":"quando avanzi sulla Cultura: ottieni monete pari al tuo livello Cultura"},
-{"nome":"The Dancer","pv":null,"cariche":2,"potere":"quando ottieni un gettone Beneficio: prendi 6 monete e, se e' un gettone nuovo, prendilo gia' girato"}
+{"nome":"The Dancer","pv":2,"cariche":2,"potere":"quando ottieni un gettone Beneficio: prendi 6 monete e, se e' un gettone nuovo, prendilo gia' girato"}
 ],
 "tessere":{"upgrade":[{"id":"pesca","colore":"grigio","base":"Pesca: simbolo mazzo; dal display paghi il costo","liv1":"1 PV; lettura incerta (mazzo+Cultura / display senza costo)","incerto":true},{"id":"jolly","colore":"viola","base":"max 1 jolly per azione","liv1":"max 2 jolly per azione; 1 PV"},{"id":"mano","colore":"giallo","base":"limite mano 4","liv1":"limite mano 6; 1 PV"},{"id":"pv","colore":"verde","base":"nessun effetto","liv1":"2 PV"}],"relax":[{"pv":1,"giocatori":2},{"pv":2,"giocatori":3},{"pv":3,"giocatori":4},{"pv":4,"giocatori":2}],"cane":{"dim":2,"fine":"1 PV per ogni icona diversa","stress":1},"gatto":{"dim":1,"immediato":"ottieni 3 volte il bonus coperto","stress":0},"benefici":["Viaggi","Serenità","Amici"],"fineParita":{"pv":2}}
 };

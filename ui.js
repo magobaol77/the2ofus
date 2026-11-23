@@ -523,7 +523,7 @@ document.addEventListener('mouseover', e => {
   let tx = '';
   if (FAMILY[n]) tx = (FAMILY[n].iniziale ? 'Inizio: ' + esc(FAMILY[n].iniziale) + '<br>' : '') + (FAMILY[n].continuo ? 'Sempre: ' + esc(FAMILY[n].continuo) : '');
   else if (KIDI[n]) tx = esc(KIDI[n].pv + ' PV, ' + KIDI[n].cariche + ' cariche: ' + KIDI[n].potere);
-  else if (KIDE[n]) tx = esc('Fine partita, in base a: ' + KIDE[n].conteggio + ' (' + Object.entries(KIDE[n].tabella).map(([a, b]) => a + '→' + b).join(', ') + ' PV)');
+  else if (KIDE[n]) tx = esc('Fine partita, in base a: ' + KIDE[n].conteggio + ' (' + (KIDE[n].tabella ? Object.entries(KIDE[n].tabella).map(([a, b]) => a + '→' + b).join(', ') + ' PV' : KIDE[n].testo || '') + ')');
   if (d && d.effetti) tx = d.effetti.map(x => ({ immediato: 'Immediato', rendita: 'Rendita', continuo: 'Continuo', catena: 'Catena ' + (x.beneficio || ''), fine: 'Fine partita' }[x.tipo] || '') + ': ' + esc(x.testo) + (x.incerto ? ' (da verificare)' : '')).join('<br>');
   pk.innerHTML = '<img src="' + im.getAttribute('src') + '" alt="">' + (tx ? '<div class="tx">' + tx + '</div>' : '');
   pk.hidden = false;
@@ -645,7 +645,7 @@ async function start() {
   if (running) return; running = true;
   try { await runGame(); } catch (e) { console.error(e); alert('Errore del motore: ' + e.message + '\nUsa "Annulla" oppure esporta la partita e segnalalo.'); }
   running = false; render();
-  if (G.phase === 'over') showScores();
+  if (G.phase === 'over') { recordHighscore(); showScores(); }
 }
 function abortPending() { if (PENDING) { const pd = PENDING; PENDING = null; pd.reject({ abort: true }); } }
 function newGameDialog() {
@@ -664,10 +664,11 @@ $('#bStart').onclick = () => {
   $('#mNew').classList.remove('on');
   abortPending(); HISTORY.length = 0; GAMEGEN++; BOTTHINK = null;
   newGame({ players: names.map((n, i) => ({ name: n, board: boards[i], ai: types[i] === 'a' })), seed });
+  G.startedAt = Date.now(); hideHome();
   SEL = 0; SELW = null; JOLLY = 0; running = false; start();
 };
 $('#bCancelNew').onclick = () => $('#mNew').classList.remove('on');
-$('#bNew').onclick = newGameDialog;
+$('#bMenu').onclick = showHome;
 $('#bUndo').onclick = () => { if (PENDING) { const pd = PENDING; PENDING = null; houseState = null; SELW = null; JOLLY = 0; pd.reject(UNDO); } };
 $('#bFix').onclick = openFix;
 $('#bSpeed').onclick = () => { botSpeed = (botSpeed + 1) % BOT_SPEEDS.length; try { localStorage.setItem('happyfamily.botspeed', botSpeed); } catch (e) { } render(); };
@@ -678,12 +679,81 @@ $('#bSave').onclick = () => {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
   a.download = 'the-2-of-us-round' + G.round + '.json'; a.click();
 };
-$('#bLoad').onclick = () => $('#fileIn').click();
 $('#fileIn').onchange = async e => { const f = e.target.files[0]; if (f) loadState(await f.text()); };
-function loadState(txt) { indexData(); abortPending(); GAMEGEN++; BOTTHINK = null; G = JSON.parse(txt); HISTORY.length = 0; SEL = G.current || 0; SELW = null; running = false; start(); }
+function loadState(txt) { indexData(); abortPending(); GAMEGEN++; BOTTHINK = null; G = JSON.parse(txt); HISTORY.length = 0; SEL = G.current || 0; SELW = null; running = false; hideHome(); start(); }
 window.addEventListener('load', () => {
   indexData();
-  let saved = null; try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { }
-  if (saved && saved.hist) loadState(saved.hist); else newGameDialog();
+  showHome();
 });
+// ---------- schermata iniziale ----------
+function savedGame() { try { const s = JSON.parse(localStorage.getItem(STORE) || 'null'); return s && s.hist ? s.hist : null; } catch (e) { return null; } }
+function showHome() {
+  const c = $('#hContinue'), foot = $('#hFoot');
+  let label = null, info = '';
+  if (G) { label = G.phase === 'over' ? 'Torna alla partita finita' : 'Torna alla partita'; info = 'Round ' + G.round + ' · ' + G.players.map(p => p.name).join(', '); }
+  else { const h = savedGame(); if (h) { try { const g = JSON.parse(h); label = g.phase === 'over' ? 'Riapri l\'ultima partita' : 'Continua partita'; info = 'Round ' + g.round + ' · ' + g.players.map(p => p.name).join(', '); } catch (e) { } } }
+  c.hidden = !label; if (label) c.innerHTML = esc(label) + '<small>' + esc(info) + '</small>';
+  const n = hsLoad().length; foot.textContent = n ? 'Partite registrate nell\'Highscore: ' + n : 'Le partite finite dai giocatori umani finiscono nell\'Highscore.';
+  $('#home').hidden = false; document.body.classList.add('home-on');
+  setTimeout(() => (label ? c : $('#hNew')).focus(), 0);
+}
+function hideHome() { $('#home').hidden = true; document.body.classList.remove('home-on'); }
+$('#hContinue').onclick = () => { if (G) { hideHome(); render(); if (G.phase === 'over') showScores(); } else { const h = savedGame(); if (h) loadState(h); } };
+$('#hNew').onclick = newGameDialog;
+$('#hLoad').onclick = () => $('#fileIn').click();
+$('#hCards').onclick = () => { location.href = 'verifica.html'; };
+$('#hSim').onclick = () => { location.href = 'simulatore.html'; };
+$('#hScores').onclick = showHighscores;
+
+// ---------- highscore ----------
+const HS_KEY = 'the2ofus.highscores.v1';
+function hsLoad() { try { return JSON.parse(localStorage.getItem(HS_KEY) || '[]'); } catch (e) { return []; } }
+function hsSave(list) { try { localStorage.setItem(HS_KEY, JSON.stringify(list)); } catch (e) { } }
+function recordHighscore() {
+  if (!G || G.phase !== 'over' || G.hsRecorded) return;
+  const sc = G.scores || finalScores(); const list = hsLoad(); const at = Date.now();
+  for (const p of G.players) {
+    if (p.ai) continue;
+    const b = sc.breakdown[p.id];
+    list.push({ at, name: p.name, total: b.total, nP: G.nP, pos: sc.ranking.indexOf(p.id) + 1, family: p.family, board: p.board,
+      kidEnd: p.kids.end, kidInst: p.kids.inst, kidEndIn: !!p.famSlots.child1, kidInstIn: !!p.famSlots.child2, dog: !!p.famSlots.dog, cat: !!p.famSlots.cat,
+      rounds: G.round, closed: G.endTrigger === p.id, cats: Object.fromEntries(SCORE_CATS.map(([k]) => [k, b[k] || 0])) });
+  }
+  G.hsRecorded = true; hsSave(list); IO.update();
+}
+let HS_NP = 'all';
+function showHighscores() {
+  const all = hsLoad();
+  const list = all.map((e, i) => ({ ...e, i })).filter(e => HS_NP === 'all' || e.nP === +HS_NP).sort((a, b) => b.total - a.total || a.at - b.at);
+  let h = '<div class="hs-head"><h3>Highscore</h3><label class="small">Giocatori <select id="hsNP">' + [['all', 'tutti'], ['2', '2'], ['3', '3'], ['4', '4']].map(([v, l]) => '<option value="' + v + '"' + (HS_NP === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>' +
+    '<button class="btn" id="hsCsv"' + (all.length ? '' : ' disabled') + '>Esporta CSV</button><button class="btn" id="hsClear"' + (all.length ? '' : ' disabled') + '>Svuota</button><button class="btn" id="hsClose">Chiudi</button></div>';
+  if (!list.length) h += '<div class="hs-empty">' + (all.length ? 'Nessuna partita con questo numero di giocatori.' : 'Ancora nessuna partita registrata. Quando un giocatore umano finisce una partita, il suo punteggio compare qui.') + '</div>';
+  else {
+    const kid = (n, inFam) => n ? esc(n) + (inFam ? '' : ' <span class="sub">(non entrato)</span>') : '—';
+    h += '<div class="hs-wrap"><table class="hstab"><thead><tr><th class="n">#</th><th class="n">Punti</th><th>Giocatore</th><th>Famiglia</th><th>Plancia</th><th>Figlio fine partita</th><th>Figlio istantaneo</th><th>Animali</th><th class="n">Round</th>' +
+      SCORE_CATS.map(([k, l]) => '<th class="n" title="' + esc(l) + '">' + esc(l) + '</th>').join('') + '</tr></thead><tbody>';
+    list.forEach((e, r) => {
+      const d = new Date(e.at);
+      h += '<tr class="' + (r === 0 ? 'first' : '') + '" title="' + esc(d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) + ' · ' + e.nP + ' giocatori · ' + e.pos + '° posto') + '"><td class="n">' + (r + 1) + '</td><td class="n tot">' + e.total + '</td><td>' + esc(e.name) + '<div class="sub">' + e.nP + 'G · ' + e.pos + '°</div></td><td>' + esc(e.family || '—') + '</td><td>' + esc(e.board || '—') + '</td><td>' + kid(e.kidEnd, e.kidEndIn) + '</td><td>' + kid(e.kidInst, e.kidInstIn) + '</td><td>' +
+        ([e.dog ? 'Cane' : '', e.cat ? 'Gatto' : ''].filter(Boolean).join(', ') || '—') + '</td><td class="n">' + e.rounds + (e.closed ? ' <span class="sub" title="Ha chiuso la partita">★</span>' : '') + '</td>' +
+        SCORE_CATS.map(([k]) => '<td class="n">' + (e.cats[k] || 0) + '</td>').join('') + '</tr>';
+    });
+    h += '</tbody></table></div><p class="small">★ = ha chiuso lui la partita. Passa sopra una riga per data, numero di giocatori e posizione. I dati restano in questo browser: esporta il CSV per conservarli.</p>';
+  }
+  $('#hsBox').innerHTML = h; $('#mHs').classList.add('on');
+  $('#hsClose').onclick = () => $('#mHs').classList.remove('on');
+  $('#hsNP').onchange = e => { HS_NP = e.target.value; showHighscores(); };
+  $('#hsCsv').onclick = () => {
+    const cols = ['data', 'giocatore', 'punti', 'giocatori', 'posizione', 'famiglia', 'plancia', 'figlio_fine', 'figlio_fine_in_famiglia', 'figlio_istantaneo', 'figlio_istantaneo_in_famiglia', 'cane', 'gatto', 'round', 'ha_chiuso'].concat(SCORE_CATS.map(([k]) => k));
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = all.map(e => [new Date(e.at).toISOString(), e.name, e.total, e.nP, e.pos, e.family, e.board, e.kidEnd, e.kidEndIn ? 1 : 0, e.kidInst, e.kidInstIn ? 1 : 0, e.dog ? 1 : 0, e.cat ? 1 : 0, e.rounds, e.closed ? 1 : 0].concat(SCORE_CATS.map(([k]) => e.cats[k] || 0)).map(q).join(';'));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + [cols.join(';')].concat(rows).join('\r\n')], { type: 'text/csv' }));
+    a.download = 'the-2-of-us-highscore.csv'; a.click();
+  };
+  $('#hsClear').onclick = e => {
+    const b = e.target; if (b.dataset.sure) { hsSave([]); showHighscores(); return; }
+    b.dataset.sure = '1'; b.textContent = 'Clic di nuovo per cancellare tutto'; b.classList.add('warn');
+  };
+}
+
 window.addEventListener('unhandledrejection', e => { if (e.reason && e.reason.abort) e.preventDefault(); });
