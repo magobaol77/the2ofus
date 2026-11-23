@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the 2 of us – Simulatore automi</title>
+<link rel="stylesheet" href="style.css?v=20261121a">
+<style>
+  body{padding-bottom:40px}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+  .ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:end}
+  .ctrl label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700}
+  .ctrl input,.ctrl select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;width:120px}
+  .prog{height:10px;background:#DCE8D5;border-radius:6px;overflow:hidden}.prog>i{display:block;height:10px;background:var(--green);width:0}
+  table.t{border-collapse:collapse;width:100%;font-size:13px}
+  table.t th,table.t td{padding:5px 8px;border-bottom:1px solid #EEF1EC;text-align:right}
+  table.t th:first-child,table.t td:first-child{text-align:left}
+  table.t th{cursor:pointer;position:sticky;top:0;background:#fff;user-select:none}
+  .scroll{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .kpis{display:flex;flex-wrap:wrap;gap:8px}
+  .kpi{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+  .kpi b{display:block;font:700 20px var(--display)}
+  .kpi span{font-size:12px;color:var(--muted)}
+  #tlog{font:12px/1.5 ui-monospace,Consolas,monospace;max-height:260px;overflow:auto;background:var(--soft);border-radius:10px;padding:8px 10px;white-space:pre-wrap}
+  .acc{color:var(--green);font-weight:800}
+  .note{font-size:13px;color:var(--muted);max-width:900px}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px}
+  .hist{display:flex;align-items:flex-end;gap:4px;height:150px;border-bottom:1px solid var(--line);padding-top:16px}
+  .hist div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted)}
+  .hist i{display:block;width:100%;background:var(--blue);border-radius:4px 4px 0 0;min-height:2px}
+  .hist .rl{margin-top:3px;font-weight:800;color:var(--ink)}
+  .hl{background:#EAF5E4;font-weight:800}
+  .neg{color:var(--red)}.pos{color:var(--green)}
+</style>
+</head>
+<body>
+<header id="top">
+  <div class="brand"><span class="brand-the">the</span> 2 of us · Simulatore automi</div>
+  <div class="info"></div>
+  <nav><button onclick="location.href='index.html'">Torna al gioco</button></nav>
+</header>
+<div class="wrap">
+
+<section class="panel">
+  <div class="ph"><h2>Partite tra automi e statistiche</h2></div>
+  <p class="note">Gli automi giocano con le regole complete. Per ogni scelta simulano tutte le opzioni fino alla fine del turno e scelgono quella che valutano migliore. Una partita richiede alcuni secondi; la pagina deve restare aperta.</p>
+  <div class="ctrl">
+    <label>Partite <input id="nG" type="number" min="1" value="20"></label>
+    <label>Giocatori <select id="nPl"><option>2</option><option>3</option><option>4</option></select></label>
+    <button class="go" id="bRun">Avvia</button>
+    <button class="btn" id="bStop">Ferma</button>
+    <button class="btn" id="bCsv" disabled>Scarica CSV carte</button>
+  </div>
+  <div class="prog" style="margin-top:12px"><i id="pr"></i></div>
+  <div class="small" id="st" style="margin-top:6px">Pronto.</div>
+</section>
+
+<section class="panel" id="res" hidden>
+  <div class="ph"><h2>Risultati</h2><span class="small" id="resInfo"></span></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="cols">
+    <div><div class="sect">Durata della partita (round)</div><div class="hist" id="hist"></div></div>
+    <div><div class="sect">Milestone: quante per partita e in che round arrivano</div><table class="t" id="ms"></table></div>
+  </div>
+  <div class="sect">Punti medi per categoria: vincitore contro gli altri</div>
+  <table class="t" id="cats"></table>
+  <div class="cols">
+    <div><div class="sect">Mosse per giocatore per partita</div><table class="t" id="act"></table></div>
+    <div><div class="sect">Azioni Hobby per giocatore per partita</div><table class="t" id="hob"></table>
+      <div class="sect">Famiglie</div><table class="t" id="fam"></table></div>
+  </div>
+  <div class="sect">Carte (clic sull'intestazione per ordinare)</div>
+  <p class="note"><b>Vantaggio</b> = punti di chi aveva la carta in gioco meno la media della sua partita. È più affidabile della % vittorie, ma resta una correlazione: chi gioca tante carte tende a vincere. Con poche partite i numeri sono rumore; per giudicare una carta servono centinaia di partite.</p>
+  <div class="ctrl" style="margin-bottom:8px"><label>Mostra carte giocate almeno <input id="minN" type="number" min="1" value="3"></label></div>
+  <div class="scroll"><table class="t" id="cards"></table></div>
+</section>
+
+<section class="panel">
+  <div class="ph"><h2>Allenamento dell'automa</h2></div>
+  <p class="note">A ogni passo nasce uno sfidante: i pesi del campione con piccole variazioni casuali. I due giocano a coppie di partite a 2 giocatori, con lo stesso seme e i posti scambiati. Se lo sfidante vince almeno il 60% e fa più punti, diventa il nuovo campione. È lento (circa 2–3 minuti per passo con 20 coppie): lascialo girare a lungo, anche con la scheda in secondo piano. Meno di 20 coppie rende il risultato poco affidabile. Con "Usa nel gioco" i pesi del campione valgono per gli automi della partita.</p>
+  <div class="ctrl">
+    <label>Passi <input id="tS" type="number" min="1" value="20"></label>
+    <label>Coppie per passo <input id="tP" type="number" min="1" value="20"></label>
+    <button class="go" id="bTrain">Allena</button>
+    <button class="btn" id="bTStop">Ferma</button>
+    <button class="btn" id="bUse">Usa nel gioco</button>
+    <button class="btn" id="bReset">Torna ai pesi di base</button>
+    <button class="btn" id="bExp">Scarica bot-weights.js</button>
+  </div>
+  <div class="sect">Pesi del campione</div>
+  <div class="small" id="champ"></div>
+  <div class="sect">Diario</div>
+  <div id="tlog"></div>
+</section>
+</div>
+
+<script src="board-data.js?v=20261120d"></script>
+<script src="effects-data.js?v=20261120d"></script>
+<script src="card-logic.js?v=20261120d"></script>
+<script src="engine.js?v=20261120d"></script>
+<script src="bot-weights.js?v=20261120d"></script>
+<script src="bot.js?v=20261120d"></script>
+<script src="sim-core.js?v=20261120d"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pct = x => Math.round(x * 100) + '%';
+const yieldUI = () => new Promise(r => setTimeout(r, 0));
+indexData();
+let LAST = null, sortKey = 'played', sortDir = -1;
+const CAT_L = { milestone: 'Milestone', carte: 'PV carte', fineCarte: 'Fine partita carte', parchi: 'Parchi', upgrade: 'Upgrade e Relax', medaglie: 'Medaglie', famiglia: 'Famiglia', cultura: 'Cultura', stress: 'Stress', benefici: 'Benefici', altri: 'Altri PV', total: 'Totale' };
+
+$('#bRun').onclick = async () => {
+  const N = Math.max(1, +$('#nG').value), nP = +$('#nPl').value;
+  SIM.stop = false; $('#bRun').disabled = true; $('#bTrain').disabled = true;
+  const S = simNewStats(); const t0 = Date.now();
+  for (let g = 0; g < N && !SIM.stop; g++) {
+    $('#st').textContent = 'Partita ' + (g + 1) + ' di ' + N + '…'; await yieldUI();
+    const r = await simPlayGame(nP, Math.floor(Math.random() * 1e9), {});
+    if (r) simAddGame(S, r);
+    $('#pr').style.width = (100 * (g + 1) / N) + '%';
+    if (S.games) { LAST = simSummary(S, nP); showResults(LAST, nP); }
+  }
+  $('#st').textContent = (SIM.stop ? 'Fermato. ' : 'Fatto. ') + S.games + ' partite in ' + Math.round((Date.now() - t0) / 1000) + ' s.';
+  $('#bRun').disabled = false; $('#bTrain').disabled = false; $('#bCsv').disabled = !LAST;
+};
+$('#bStop').onclick = () => { SIM.stop = true; };
+
+const ACT_L = k => k === 'coins' ? 'Prendi 2 monete' : k === 'hobby' ? 'Avanza Hobby' : k === 'pass' ? 'Passa' : (ACTIONS[k] ? ACTIONS[k].name : k);
+const HOB_L = k => { const h = HOBBY_MENU.find(x => x.id === k); return h ? h.label : k; };
+const f1 = x => x == null ? '—' : x.toFixed(1);
+const sgn = x => '<span class="' + (x >= 0 ? 'pos' : 'neg') + '">' + (x >= 0 ? '+' : '') + x.toFixed(1) + '</span>';
+function showResults(R, nP) {
+  $('#res').hidden = false;
+  $('#resInfo').textContent = R.games + ' partite a ' + nP + ' giocatori';
+  $('#kpis').innerHTML = [['Round medi', f1(R.avgRounds)], ['Punti medi', f1(R.avgScore)], ['Distacco 1°–2°', f1(R.margin)],
+    ['Vittorie del primo di turno', R.firstRate == null ? '—' : pct(R.firstRate) + ' (atteso ' + pct(1 / nP) + ')'],
+    ['Prima milestone (round)', f1(R.msFirst)], ['Sesta milestone (round)', f1(R.msSixth)]]
+    .map(([l, v]) => '<div class="kpi"><b>' + v + '</b><span>' + l + '</span></div>').join('');
+  const rs = Object.keys(R.roundsHist).map(Number); const mn = Math.min(...rs), mx = Math.max(...rs); const top = Math.max(...Object.values(R.roundsHist));
+  let hh = ''; for (let r = mn; r <= mx; r++) { const n = R.roundsHist[r] || 0; hh += '<div title="' + n + ' partite in ' + r + ' round">' + (n || '') + '<i style="height:' + (100 * n / top) + '%"></i><span class="rl">' + r + '</span></div>'; }
+  $('#hist').innerHTML = hh;
+  $('#ms').innerHTML = '<tr><th>Fonte</th><th>Per partita</th><th>Round medio</th></tr>' + R.ms.map(m => '<tr><td>' + esc(m.src) + '</td><td>' + m.perGame.toFixed(2) + '</td><td>' + f1(m.round) + '</td></tr>').join('');
+  $('#cats').innerHTML = '<tr><th>Categoria</th><th>Vincitore</th><th>Altri</th><th>Media</th><th>Differenza</th></tr>' + Object.keys(CAT_L).map(k => { const w = R.winCats[k] || 0, l = R.loseCats[k] || 0; return '<tr' + (k === 'total' ? ' class="hl"' : '') + '><td>' + CAT_L[k] + '</td><td>' + f1(w) + '</td><td>' + f1(l) + '</td><td>' + f1(R.cats[k] || 0) + '</td><td>' + sgn(w - l) + '</td></tr>'; }).join('');
+  $('#act').innerHTML = '<tr><th>Mossa</th><th>Volte</th></tr>' + R.act.map(a => '<tr><td>' + esc(ACT_L(a.k)) + '</td><td>' + a.perPlayer.toFixed(1) + '</td></tr>').join('');
+  $('#hob').innerHTML = '<tr><th>Azione Hobby</th><th>Volte</th></tr>' + R.hob.map(a => '<tr><td>' + esc(HOB_L(a.k)) + '</td><td>' + a.perPlayer.toFixed(1) + '</td></tr>').join('');
+  $('#fam').innerHTML = '<tr><th>Famiglia</th><th>Partite</th><th>Vittorie</th><th>Vantaggio</th></tr>' +
+    R.families.sort((a, b) => b.adv - a.adv).map(f => '<tr><td>' + esc(f.name) + '</td><td>' + f.games + '</td><td>' + pct(f.winRate) + '</td><td>' + sgn(f.adv) + '</td></tr>').join('');
+  renderCards();
+}
+function renderCards() {
+  if (!LAST) return;
+  const minN = Math.max(1, +$('#minN').value || 1);
+  const cols = [['name', 'Carta'], ['played', 'Volte in gioco'], ['playRate', 'Frequenza'], ['round', 'Round medio'], ['adv', 'Vantaggio'], ['winRate', 'Vittorie'], ['avgScore', 'Punti medi']];
+  const rows = LAST.cards.filter(c => c.played >= minN).sort((a, b) => ((a[sortKey] ?? -1) > (b[sortKey] ?? -1) ? 1 : (a[sortKey] ?? -1) < (b[sortKey] ?? -1) ? -1 : 0) * sortDir);
+  $('#cards').innerHTML = '<tr>' + cols.map(([k, l]) => '<th data-k="' + k + '">' + l + (k === sortKey ? (sortDir < 0 ? ' ▼' : ' ▲') : '') + '</th>').join('') + '</tr>' +
+    rows.map(c => '<tr><td>' + esc(c.name) + '</td><td>' + c.played + '</td><td>' + pct(c.playRate) + '</td><td>' + f1(c.round) + '</td><td>' + sgn(c.adv) + '</td><td>' + pct(c.winRate) + '</td><td>' + c.avgScore.toFixed(1) + '</td></tr>').join('');
+}
+$('#minN').oninput = renderCards;
+$('#cards').onclick = e => { const th = e.target.closest('th'); if (!th) return; const k = th.dataset.k; if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'name' ? 1 : -1; } renderCards(); };
+$('#bCsv').onclick = () => {
+  const num = x => x == null ? '' : String(x).replace('.', ',');
+  const lines = ['carta;volte_in_gioco;frequenza;round_medio;vantaggio;vittorie;punti_medi'].concat(LAST.cards.map(c => [c.name, c.played, num(c.playRate.toFixed(3)), num(c.round == null ? null : c.round.toFixed(1)), num(c.adv.toFixed(1)), num(c.winRate.toFixed(3)), num(c.avgScore.toFixed(1))].join(';')));
+  download('the-2-of-us-statistiche-carte.csv', '﻿' + lines.join('\n'), 'text/csv');
+};
+function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); }
+
+// ---------- allenamento ----------
+let CHAMP = Object.assign({}, BOT_DEFAULT_WEIGHTS, BOT_TRAINED_WEIGHTS, Bot.base || {});
+function showChamp() { $('#champ').textContent = Object.entries(CHAMP).map(([k, v]) => k + ' ' + v).join(' · '); }
+function tlog(html) { const el = $('#tlog'); el.innerHTML += html + '\n'; el.scrollTop = el.scrollHeight; }
+showChamp();
+$('#bTrain').onclick = async () => {
+  const steps = Math.max(1, +$('#tS').value), pairs = Math.max(1, +$('#tP').value);
+  SIM.stop = false; $('#bTrain').disabled = true; $('#bRun').disabled = true;
+  for (let s = 1; s <= steps && !SIM.stop; s++) {
+    let n = 0; $('#st').textContent = 'Allenamento: passo ' + s + ' di ' + steps;
+    const r = await simTrainStep(CHAMP, { pairs, sigma: 0.3, threshold: 0.6 }, async () => { n++; $('#pr').style.width = (100 * n / (2 * pairs)) + '%'; await yieldUI(); });
+    const ch = Object.keys(r.chall).filter(k => r.chall[k] !== CHAMP[k]).map(k => k + ' ' + CHAMP[k] + '→' + r.chall[k]).join(', ');
+    tlog('Passo ' + s + ': sfidante vince ' + pct(r.rate) + ', differenza media ' + r.avgDiff.toFixed(1) + ' pt' + (r.accepted ? ' <span class="acc">nuovo campione</span>' : '') + ' [' + esc(ch) + ']');
+    if (r.accepted) { CHAMP = r.chall; showChamp(); try { localStorage.setItem('happyfamily.trainchamp', JSON.stringify(CHAMP)); } catch (e) { } }
+  }
+  $('#st').textContent = 'Allenamento ' + (SIM.stop ? 'fermato.' : 'finito.');
+  $('#bTrain').disabled = false; $('#bRun').disabled = false;
+};
+$('#bTStop').onclick = () => { SIM.stop = true; };
+$('#bUse').onclick = () => { localStorage.setItem('happyfamily.botweights', JSON.stringify(CHAMP)); Bot.base = CHAMP; tlog('Pesi del campione attivati per il gioco.'); };
+$('#bReset').onclick = () => { localStorage.removeItem('happyfamily.botweights'); localStorage.removeItem('happyfamily.trainchamp'); Bot.base = null; CHAMP = Object.assign({}, BOT_DEFAULT_WEIGHTS, BOT_TRAINED_WEIGHTS); showChamp(); tlog('Tornato ai pesi di base.'); };
+$('#bExp').onclick = () => download('bot-weights.js', "// Pesi allenati dell'automa (generati dal simulatore). Vuoto = pesi di base.\nvar BOT_TRAINED_WEIGHTS = " + JSON.stringify(CHAMP, null, 1) + ';\n', 'text/javascript');
+try { const tc = localStorage.getItem('happyfamily.trainchamp'); if (tc) { CHAMP = JSON.parse(tc); showChamp(); tlog('Ripreso il campione dell\'ultimo allenamento.'); } } catch (e) { }
+</script>
+</body>
+</html>

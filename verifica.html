@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the 2 of us – Verifica carte</title>
+<link rel="stylesheet" href="style.css?v=20261121a">
+<style>
+  body{padding-bottom:40px}
+  .wrap{max-width:1300px;margin:0 auto;padding:14px 20px;display:flex;flex-direction:column;gap:14px}
+  .bar2{position:sticky;top:58px;z-index:30;background:var(--ground);padding:8px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .tabs{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .tabs button{border:0;background:#fff;padding:8px 12px;min-height:40px;font-weight:700;cursor:pointer;font-size:13px}
+  .tabs button.on{background:var(--head);color:#fff}
+  .bar2 input[type=search]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;min-width:220px;min-height:40px}
+  .bar2 select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;min-height:40px}
+  .prog{flex:1 1 200px;min-width:160px}
+  .prog .t{font-size:12px;color:var(--muted);margin-bottom:3px}
+  .pbar{height:8px;background:#DCE8D5;border-radius:5px;overflow:hidden;display:flex}.pbar i{display:block;height:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(560px,1fr));gap:12px}
+  .vc{background:#fff;border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px}
+  .vc.ok{border-left-color:var(--green)}
+  .vc.ko{border-left-color:var(--red);background:#FFF8F7}
+  .vc img.cimg{width:170px;height:auto;border-radius:10px;cursor:zoom-in;box-shadow:0 2px 6px #0002}
+  .vc h3{font:600 17px var(--display);margin:0 0 2px}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .blk{font-size:13px;margin:6px 0}
+  .blk .lab{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .blk ul{margin:0;padding-left:16px}
+  .blk li{margin:2px 0}
+  .blk li b{font-weight:800}
+  .eng li{background:#EEF5FD;border-radius:6px;padding:3px 6px;list-style:none;margin-left:-16px}
+  .eng li.warn{background:#FFF1D6}
+  .shp{float:right;margin:0 0 4px 8px}
+  .unc{display:inline-block;font-size:11px;font-weight:800;color:#8A5A00;background:#FFE6A8;border-radius:6px;padding:1px 6px;margin-left:4px}
+  .vact{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+  .vact .btn.okb.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .vact .btn.kob.on{background:var(--red);color:#fff;border-color:var(--red)}
+  .vact textarea{flex:1 1 100%;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:6px 8px;min-height:44px}
+  .zoom{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:80;cursor:zoom-out}
+  .zoom img{max-height:92vh;max-width:92vw;border-radius:14px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}.vc{grid-template-columns:1fr}.vc img.cimg{width:100%}}
+</style>
+</head>
+<body>
+<header id="top">
+  <div class="brand"><span class="brand-the">the</span> 2 of us · Verifica carte</div>
+  <div class="info"></div>
+  <nav>
+    <button id="bExport">Scarica segnalazioni</button>
+    <button id="bBackup">Esporta verifica</button>
+    <button id="bImport">Importa verifica</button>
+    <button onclick="location.href='index.html'">Torna al gioco</button>
+  </nav>
+</header>
+<div class="wrap">
+  <p class="small" style="margin:0">Per ogni carta confronta il <b>testo trascritto</b> e soprattutto <b>cosa fa il motore</b> con la carta vera. Segna Giusto o Sbagliato e, se serve, scrivi cosa non va. Tutto si salva da solo nel browser. Alla fine "Scarica segnalazioni" crea un file da mandarmi con le carte sbagliate.</p>
+  <div class="bar2">
+    <div class="tabs" id="tabs"></div>
+    <select id="fStat"><option value="">Tutti gli stati</option><option value="todo">Da verificare</option><option value="ko">Sbagliate</option><option value="ok">Giuste</option><option value="unc">Con interpretazioni incerte</option></select>
+    <input type="search" id="fq" placeholder="Cerca nome o testo">
+    <div class="prog"><div class="t" id="progT"></div><div class="pbar"><i id="pOk" style="background:var(--green)"></i><i id="pKo" style="background:var(--red)"></i></div></div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<input type="file" id="fileIn" accept=".json" style="display:none">
+
+<script src="board-data.js"></script>
+<script src="effects-data.js"></script>
+<script src="card-logic.js"></script>
+<script src="card-images.js"></script>
+<script src="engine.js"></script>
+<script src="logic-describe.js"></script>
+<script>
+'use strict';
+indexData();
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const KEY = 'happyfamily.verifica';
+let V = {}; try { V = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(V)); } catch (e) { } };
+const TIPO = { immediato: 'Immediato', rendita: 'Rendita', continuo: 'Continuo', catena: 'Catena', fine: 'Fine partita' };
+
+// elenco unificato
+const ALL = [];
+HF_DATA.professioni.forEach(c => ALL.push({ k: 'prof', id: 'P:' + c.nome, name: c.nome, d: c }));
+HF_DATA.stanze.forEach(c => ALL.push({ k: 'room', id: 'R:' + c.nome, name: c.nome, d: c }));
+HF_DATA.sogni.forEach(c => ALL.push({ k: 'dream', id: 'D:' + c.nome, name: c.nome, d: c }));
+HF_DATA.parchi.forEach(c => ALL.push({ k: 'park', id: 'K:' + c.id, name: c.id, d: c }));
+HF_DATA.famiglie.forEach(c => ALL.push({ k: 'family', id: 'F:' + c.nome, name: c.nome, d: c }));
+HF_DATA.figliFinePartita.forEach(c => ALL.push({ k: 'kidEnd', id: 'E:' + c.nome, name: c.nome, d: c }));
+HF_DATA.figliIstantanei.forEach(c => ALL.push({ k: 'kidInst', id: 'I:' + c.nome, name: c.nome, d: c }));
+const KLAB = { prof: 'Professioni', room: 'Stanze', dream: 'Sogni', park: 'Parchi', family: 'Famiglie', kidEnd: 'Figli fine partita', kidInst: 'Figli istantanei' };
+const isUnc = e => !!(e.d.incerto || (e.d.effetti || []).some(x => x.incerto));
+let TAB = 'prof';
+
+function meta(e) {
+  const d = e.d;
+  if (e.k === 'prof' || e.k === 'room') return 'costo ' + d.costo + ' · icone: ' + (d.icone.join(', ') || 'nessuna') + ' · ' + (typeof d.pv === 'number' ? d.pv + ' PV' : 'PV variabili') +
+    (d.prereq ? ' · prerequisito: ' + (d.prereq.icona ? d.prereq.n + ' ' + d.prereq.icona : 'Stress ' + d.prereq.stress) : '') +
+    (e.k === 'room' ? ' · forma ' + (d.forma || '—') + ' (' + d.dim + ' caselle)' : '') +
+    ((d.beneficio || (d.benefici || []).length) ? ' · icona promemoria catena: ' + (d.beneficio || d.benefici.join(', ')) + ' (non dà il gettone)' : '');
+  if (e.k === 'dream') return 'Sogno ' + (d.tipo === 'base' ? 'base' : 'del mazzo');
+  if (e.k === 'park') return 'Parco livello ' + d.livello;
+  if (e.k === 'family') return d.monete + ' monete' + (d.icona ? ' · icona ' + d.icona : '');
+  if (e.k === 'kidInst') return d.pv + ' PV · ' + d.cariche + ' cariche';
+  if (e.k === 'kidEnd') return 'conta: ' + d.conteggio;
+  return '';
+}
+function transcribed(e) {
+  const d = e.d;
+  if (d.effetti) return d.effetti.map(x => '<li><b>' + (TIPO[x.tipo] || x.tipo) + (x.beneficio ? ' ' + esc(x.beneficio) : '') + ':</b> ' + esc(x.testo) + (x.incerto ? '<span class="unc">incerto</span>' : '') + '</li>').join('');
+  if (e.k === 'family') return '<li><b>Iniziale:</b> ' + esc(d.iniziale || '—') + '</li><li><b>Continuo:</b> ' + esc(d.continuo || '—') + (d.incerto ? '<span class="unc">incerto</span>' : '') + '</li>';
+  if (e.k === 'kidInst') return '<li>' + esc(d.potere) + '</li>';
+  if (e.k === 'dream') return '<li>' + esc(d.requisito) + ': ' + ['oro', 'argento', 'bronzo'].map(l => l + ' ' + d.soglie[l]).join(', ') + (d.incerto ? '<span class="unc">incerto</span>' : '') + '</li>';
+  if (e.k === 'park') return '<li>Bonus ' + d.sogliaPersonale + '+: ' + esc(d.bonus) + '</li>';
+  if (e.k === 'kidEnd') return '<li>' + (d.tabella ? Object.entries(d.tabella).map(([a, b]) => a + ' → ' + b + ' PV').join(' · ') : esc(d.testo || '')) + '</li>';
+  return '';
+}
+function shapeSVG(cells) {
+  const c = 16, W = 1 + Math.max(...cells.map(x => x[1])), H = 1 + Math.max(...cells.map(x => x[0]));
+  return '<svg class="shp" width="' + (W * c + 2) + '" height="' + (H * c + 2) + '" aria-label="forma della stanza">' + cells.map(([y, x]) => '<rect x="' + (x * c + 1) + '" y="' + (y * c + 1) + '" width="' + (c - 2) + '" height="' + (c - 2) + '" rx="3" fill="#8A5A2B"/>').join('') + '</svg>';
+}
+function card(e) {
+  const st = V[e.id] || {};
+  const img = CARD_IMG[e.name] ? '<img class="cimg" src="cards/' + CARD_IMG[e.name] + '" alt="' + esc(e.name) + '">' : '<div class="small">immagine non trovata</div>';
+  const shape = e.k === 'room' && e.d.forma && SHAPES[e.d.forma] ? shapeSVG(SHAPES[e.d.forma]) : '';
+  const eng = describeCardLogic(e.k, e.name).map(l => '<li class="' + (l.tipo === 'attenzione' ? 'warn' : '') + '"><b>' + esc(l.tipo) + ':</b> ' + esc(l.testo) + '</li>').join('');
+  return '<div class="vc' + (st.s === 'ok' ? ' ok' : st.s === 'ko' ? ' ko' : '') + '" data-id="' + esc(e.id) + '">' + img + '<div><h3>' + esc(e.name) + (isUnc(e) ? '<span class="unc">interpretazione incerta</span>' : '') + '</h3><div class="meta">' + esc(meta(e)) + '</div>' +
+    '<div class="blk"><div class="lab">Testo trascritto</div><ul>' + (transcribed(e) || '<li>—</li>') + '</ul></div>' +
+    '<div class="blk eng"><div class="lab">Cosa fa il motore</div>' + shape + '<ul>' + eng + '</ul></div>' +
+    '<div class="vact"><button class="btn okb' + (st.s === 'ok' ? ' on' : '') + '" data-s="ok">Giusto</button><button class="btn kob' + (st.s === 'ko' ? ' on' : '') + '" data-s="ko">Sbagliato</button>' + (st.s ? '<button class="btn" data-s="">Azzera</button>' : '') +
+    '<textarea placeholder="Cosa non va? (facoltativo)">' + esc(st.c || '') + '</textarea></div></div></div>';
+}
+function render() {
+  $('#tabs').innerHTML = Object.keys(KLAB).map(k => { const n = ALL.filter(e => e.k === k); const done = n.filter(e => V[e.id] && V[e.id].s).length; return '<button class="' + (k === TAB ? 'on' : '') + '" data-tab="' + k + '">' + KLAB[k] + ' ' + done + '/' + n.length + '</button>'; }).join('');
+  const fs = $('#fStat').value, q = $('#fq').value.trim().toLowerCase();
+  const list = ALL.filter(e => e.k === TAB).filter(e => {
+    const s = (V[e.id] || {}).s;
+    if (fs === 'todo' && s) return false; if (fs === 'ok' && s !== 'ok') return false; if (fs === 'ko' && s !== 'ko') return false; if (fs === 'unc' && !isUnc(e)) return false;
+    if (q && !(e.name.toLowerCase().includes(q) || JSON.stringify(e.d).toLowerCase().includes(q))) return false;
+    return true;
+  });
+  $('#grid').innerHTML = list.map(card).join('') || '<p class="small">Nessuna carta con questi filtri.</p>';
+  const ok = ALL.filter(e => (V[e.id] || {}).s === 'ok').length, ko = ALL.filter(e => (V[e.id] || {}).s === 'ko').length;
+  $('#progT').textContent = 'Verificate ' + (ok + ko) + ' di ' + ALL.length + ' · giuste ' + ok + ' · sbagliate ' + ko;
+  $('#pOk').style.width = (100 * ok / ALL.length) + '%'; $('#pKo').style.width = (100 * ko / ALL.length) + '%';
+}
+$('#tabs').onclick = ev => { const b = ev.target.closest('[data-tab]'); if (b) { TAB = b.dataset.tab; render(); window.scrollTo(0, 0); } };
+$('#fStat').onchange = render; $('#fq').oninput = render;
+$('#grid').onclick = ev => {
+  const im = ev.target.closest('img.cimg'); if (im) { const z = document.createElement('div'); z.className = 'zoom'; z.innerHTML = '<img src="' + im.src + '" alt="">'; z.onclick = () => z.remove(); document.body.appendChild(z); return; }
+  const b = ev.target.closest('[data-s]'); if (!b) return;
+  const id = b.closest('.vc').dataset.id; const cur = V[id] || {};
+  cur.s = b.dataset.s || undefined; V[id] = cur; if (!cur.s && !cur.c) delete V[id]; save(); render();
+};
+$('#grid').addEventListener('change', ev => {
+  if (ev.target.tagName !== 'TEXTAREA') return;
+  const id = ev.target.closest('.vc').dataset.id; const cur = V[id] || {}; cur.c = ev.target.value.trim();
+  if (cur.c && !cur.s) cur.s = 'ko'; V[id] = cur; save(); render();
+});
+function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); }
+$('#bExport').onclick = () => {
+  const ko = ALL.filter(e => (V[e.id] || {}).s === 'ko');
+  const ok = ALL.filter(e => (V[e.id] || {}).s === 'ok').length;
+  let md = '# the 2 of us – segnalazioni sulle carte\n\nVerificate ' + (ok + ko.length) + ' di ' + ALL.length + ' carte: ' + ok + ' giuste, ' + ko.length + ' sbagliate.\n\n';
+  for (const k of Object.keys(KLAB)) {
+    const l = ko.filter(e => e.k === k); if (!l.length) continue;
+    md += '## ' + KLAB[k] + '\n\n';
+    for (const e of l) md += '- **' + e.name + '**: ' + ((V[e.id].c || '(nessun commento)').replace(/\n/g, ' ')) + '\n  - Motore: ' + describeCardLogic(e.k, e.name).map(x => x.tipo + ': ' + x.testo).join(' | ') + '\n';
+    md += '\n';
+  }
+  const comm = ALL.filter(e => (V[e.id] || {}).s === 'ok' && V[e.id].c);
+  if (comm.length) { md += '## Note su carte giuste\n\n'; for (const e of comm) md += '- **' + e.name + '**: ' + V[e.id].c.replace(/\n/g, ' ') + '\n'; }
+  download('the-2-of-us-segnalazioni-carte.md', md, 'text/markdown');
+};
+$('#bBackup').onclick = () => download('the-2-of-us-verifica.json', JSON.stringify(V, null, 1), 'application/json');
+$('#bImport').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = async ev => { const f = ev.target.files[0]; if (!f) return; try { V = Object.assign(V, JSON.parse(await f.text())); save(); render(); } catch (e) { alert('File non valido'); } };
+render();
+</script>
+</body>
+</html>

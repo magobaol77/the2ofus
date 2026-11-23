@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>the 2 of us – Playtest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css?v=20261121a">
+</head>
+<body>
+<header id="top">
+  <div class="brand"><span class="brand-the">the</span> 2 of us</div>
+  <div class="info" id="hinfo"></div>
+  <nav>
+    <button id="bUndo" title="Annulla l'ultimo passo">↶ Annulla</button>
+    <button id="bSpeed" title="Quanto aspettano gli automi prima di ogni mossa, per poterle seguire (clic per cambiare)">Velocità automi: Normale</button>
+    <button id="bLog">Diario</button>
+    <button id="bFix">Correggi</button>
+    <button id="bSave">Esporta</button>
+    <button id="bLoad">Importa</button>
+    <button id="bNew">Nuova partita</button>
+    <button onclick="location.href='verifica.html'" title="Controlla tutte le carte e come le applica il motore">Carte</button>
+    <button onclick="location.href='simulatore.html'" title="Partite tra automi, statistiche, allenamento">Simulatore</button>
+  </nav>
+</header>
+
+<main id="table">
+  <div id="boardCol"></div>
+  <aside id="playerCol"></aside>
+</main>
+
+<footer id="dock"></footer>
+
+<div id="prompt" class="prompt" hidden></div>
+<div id="peek" class="peek" hidden></div>
+<aside id="logPanel" class="logpanel" hidden><div class="lp-head"><b>Diario</b><button id="bLogClose" aria-label="Chiudi il diario">✕</button></div><div id="log"></div></aside>
+
+<div class="modal" id="mNew"><div class="box">
+  <h3>Nuova partita</h3>
+  <label>Numero di giocatori <select id="nP"><option>2</option><option>3</option><option>4</option></select></label>
+  <div id="pNames"></div>
+  <label>Seme casuale (facoltativo) <input id="seed" size="10" placeholder="es. 42"></label>
+  <p class="small">Ogni posto può essere Umano o Automa. Gli umani giocano a turno sullo stesso schermo. La partita si salva da sola nel browser.</p>
+  <button class="go" id="bStart">Inizia</button> <button class="btn" id="bCancelNew">Chiudi</button>
+</div></div>
+<div class="modal" id="mFix"><div class="box" id="fixBox"></div></div>
+<div class="modal" id="mScore"><div class="box score" id="scoreBox"></div></div>
+<input type="file" id="fileIn" accept=".json" style="display:none">
+
+<script src="board-data.js?v=20261120d"></script>
+<script src="effects-data.js?v=20261120d"></script>
+<script src="card-logic.js?v=20261120d"></script>
+<script src="card-images.js?v=20261120d"></script>
+<script src="engine.js?v=20261120d"></script>
+<script src="bot-weights.js?v=20261120d"></script>
+<script src="bot.js?v=20261120d"></script>
+<script src="ui.js?v=20261120d"></script>
+</body>
+</html>

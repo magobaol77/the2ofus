@@ -1,0 +1,50 @@
+THE 2 OF US (ex Happy Family) – WEBAPP PLAYTEST v0.3 (2-4 giocatori, umani e automi)
+
+Apri index.html con il browser (doppio clic). Tieni insieme nella stessa cartella:
+index.html, simulatore.html, verifica.html, logic-describe.js, style.css, ui.js, engine.js, bot.js, bot-weights.js, sim-core.js,
+card-logic.js, board-data.js, effects-data.js, card-images.js
+e le cartelle icons/ e cards/.
+
+NUOVA PARTITA
+- Per ogni posto scegli Umano o Automa. Gli umani giocano a turno sullo stesso schermo.
+- Il pulsante "Automi: ..." in alto cambia la velocità delle mosse degli automi (Lenta, Normale, Veloce, Istantanea).
+- Durante il tuo turno il riquadro in basso mostra le ultime mosse degli altri; lo storico completo è nel Diario.
+
+COME SI GIOCA
+- Il tuo turno: clicca un tuo lavoratore nel pannello a destra (o premi 1 / 2).
+  Ogni spazio azione mostra cosa ottieni adesso; con i pulsanti +1 / +2 jolly vedi subito il livello successivo.
+  Poi clicca lo spazio azione (o "Prendi 2 monete"). Esc annulla la selezione.
+- Senza lavoratore selezionato, passa il mouse su uno spazio (o cliccalo) per vedere tutti i livelli dell'azione,
+  con evidenziata la riga di ciascun lavoratore.
+- Hobby: clicca la casella evidenziata sul tracciato Hobby (mostra il costo).
+- Le altre scelte compaiono in un riquadro in alto; "Guarda il tavolo" lo riduce.
+- Passa il mouse su una carta per ingrandirla e leggerne l'effetto.
+- Piazzare una stanza: clicca una casella, riclicca per ruotare, frecce ← → per scorrere, Invio per confermare.
+
+STRUMENTI
+- Annulla torna indietro di un passo. Correggi modifica a mano risorse e carte del giocatore mostrato.
+- Diario apre lo storico. La partita si salva da sola nel browser; Esporta/Importa salvano su file.
+
+Regole implementate e assunzioni: Regole_webapp_e_assunzioni.md
+
+VERIFICA CARTE (pulsante "Carte" in alto, oppure verifica.html)
+- Tutte le carte (Professioni, Stanze, Sogni, Parchi, Famiglie, Figli) con immagine, testo trascritto e
+  "cosa fa il motore" in italiano. Segna Giusto/Sbagliato e scrivi cosa non va; si salva da solo nel browser.
+- "Scarica segnalazioni" crea un file .md con le carte sbagliate da mandarmi.
+
+FINE PARTITA
+- Classifica, barre con la provenienza dei punti, tabella per categoria, andamento dei punti round per round
+  e l'elenco delle milestone (chi, quando, da dove).
+
+AUTOMI
+- L'automa gioca con le regole complete. Per ogni scelta simula ogni opzione con il motore del gioco fino alla fine
+  del turno (rimescolando le carte future, quindi non bara) e sceglie lo stato che valuta migliore rispetto agli avversari.
+- La valutazione usa dei pesi (valore di monete, rendita, carte in mano, icone, alberi, ecc.) che si possono allenare.
+
+SIMULATORE (simulatore.html, oppure "Torna al gioco" per rientrare)
+- Partite tra automi: scegli quante partite e quanti giocatori. Ottieni round medi, punti per categoria,
+  vittorie per famiglia e una tabella delle carte (frequenza, % vittorie, punti medi), scaricabile in CSV.
+- Allenamento: lo sfidante (pesi del campione leggermente variati) gioca contro il campione; se vince nettamente lo sostituisce.
+  "Usa nel gioco" attiva i pesi del campione per gli automi della webapp. "Scarica bot-weights.js" li rende permanenti:
+  sostituisci il file bot-weights.js nella cartella.
+- Facoltativo, con Node.js installato: node bot-sim.js 50 2   (50 partite a 2)   ·   node train.js 30 6   (30 passi di allenamento)
